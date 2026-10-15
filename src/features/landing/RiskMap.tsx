@@ -110,7 +110,7 @@ export function RiskMap() {
         />
         <span className="map-scan" aria-hidden="true" />
       </div>
-      <p ref={probeRef} className="mt-2 min-h-6 text-sm text-muted">
+      <p ref={probeRef} className="map-caption mt-2 min-h-6 text-sm text-muted">
         Carte illustrative (valeurs simulées) — survolez-la pour lire un pixel.
       </p>
     </div>

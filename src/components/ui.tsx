@@ -13,7 +13,7 @@ export function Notice({
       ? 'border-[#efc7bb] bg-[#fff4f0] text-ember-dark'
       : tone === 'success'
         ? 'border-[#cfe0d6] bg-pine-soft text-pine'
-        : 'border-line bg-[#f7f3ea] text-ink'
+        : 'border-line bg-white text-ink'
   return (
     <div role={tone === 'error' ? 'alert' : 'status'} className={`rounded-2xl border px-4 py-3 text-sm ${toneClass}`}>
       {children}

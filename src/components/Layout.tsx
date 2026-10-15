@@ -58,9 +58,17 @@ export function Layout({ children }: { children: ReactNode }) {
         Skip to content
       </a>
       <header className="border-b border-line bg-white">
-        <div className="flex w-full items-center justify-between gap-4 px-4 py-4 md:px-8">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4">
           <Link to="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-            <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-10 w-10" />
+            <img
+              src={`${import.meta.env.BASE_URL}fire-removebg-preview.png`}
+              alt="ForFire-AI logo"
+              className="h-12 w-12 rounded-full bg-white object-cover"
+              onError={(event) => {
+                const target = event.currentTarget
+                if (!target.src.endsWith('favicon.svg')) target.src = `${import.meta.env.BASE_URL}favicon.svg`
+              }}
+            />
             <span>
               <span className="block font-serif text-2xl leading-none">ForFire</span>
               <span className="text-xs uppercase tracking-[0.16em] text-muted">AI Challenge</span>
@@ -103,12 +111,12 @@ export function Layout({ children }: { children: ReactNode }) {
           </nav>
         </div>
       </header>
-      <main id="main" className="w-full">
+      <main id="main" className="mx-auto w-full max-w-6xl px-4 py-8">
         {children}
       </main>
-      <footer className="w-full px-4 py-8 text-sm text-muted md:px-8">
+      <footer className="mx-auto w-full max-w-6xl px-4 py-8 text-sm text-muted">
         {publicPreview
-          ? 'ForFire-AI Challenge — Sara Charrada, Mehrez Abdellaoui, Ali Douik (ENISo) · 25 septembre 2026'
+          ? 'ForFire-AI Challenge — Sara Charrada, Mehrez Abdellaoui, Ali Douik, Jabli Mohamed Amine (ENISo) · 25 septembre 2026'
           : 'Submitted files stay in private storage. They are not saved in the website source repository.'}
       </footer>
     </div>
