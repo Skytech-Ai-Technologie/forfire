@@ -1,6 +1,21 @@
 import JSZip from 'jszip'
 import { exportFolderName, toCsv } from './csv.ts'
 import { formatDeadline, isLateSubmission } from './deadlines.ts'
+import {
+  downloadPreviewFile,
+  previewAssignment,
+  previewAssignmentForStudent,
+  previewBlocked,
+  previewCourse,
+  previewCourseAssignments,
+  previewCourses,
+  previewMembers,
+  previewMySubmissions,
+  previewRequests,
+  previewReviewRows,
+  previewStudentAssignments,
+  publicPreview,
+} from './preview.ts'
 import { requireSupabase } from './supabase.ts'
 import type {
   Assignment,
@@ -44,6 +59,10 @@ function one<T>(value: T | T[] | null | undefined): T | null {
   return value ?? null
 }
 
+function blockPreview(): void {
+  if (publicPreview) throw new Error(previewBlocked)
+}
+
 function omit<T extends object, K extends keyof T>(value: T, keys: K[]): Omit<T, K> {
   const next = { ...value }
   for (const key of keys) delete next[key]
@@ -51,6 +70,7 @@ function omit<T extends object, K extends keyof T>(value: T, keys: K[]): Omit<T,
 }
 
 export async function fetchMyProfile(userId: string): Promise<Profile | null> {
+  if (publicPreview) return null
   const client = requireSupabase()
   const { data, error } = await client.from('profiles').select('*').eq('id', userId).maybeSingle()
   if (error) throw new Error(error.message)
@@ -62,6 +82,7 @@ export async function updateMyProfile(input: {
   displayName: string
   studentId?: string
 }): Promise<void> {
+  blockPreview()
   const client = requireSupabase()
   const payload: { display_name: string; student_id?: string } = {
     display_name: input.displayName.trim(),
@@ -75,6 +96,7 @@ export async function updateMyProfile(input: {
 }
 
 export async function fetchStudentAssignments(userId: string): Promise<StudentAssignment[]> {
+  if (publicPreview) return userId ? previewStudentAssignments() : []
   const client = requireSupabase()
   const { data: memberships, error: memberError } = await client
     .from('course_members')
@@ -104,6 +126,7 @@ export async function fetchStudentAssignments(userId: string): Promise<StudentAs
 }
 
 export async function fetchAssignmentForStudent(assignmentId: string): Promise<StudentAssignment | null> {
+  if (publicPreview) return previewAssignmentForStudent(assignmentId)
   const client = requireSupabase()
   const { data, error } = await client
     .from('assignments')
@@ -123,6 +146,7 @@ export async function fetchAssignmentForStudent(assignmentId: string): Promise<S
 }
 
 export async function fetchMySubmissions(userId: string, assignmentId?: string): Promise<SubmissionView[]> {
+  if (publicPreview) return previewMySubmissions(userId, assignmentId)
   const client = requireSupabase()
   let query = client
     .from('submissions')
@@ -136,6 +160,7 @@ export async function fetchMySubmissions(userId: string, assignmentId?: string):
 }
 
 export async function fetchCourses(): Promise<Course[]> {
+  if (publicPreview) return previewCourses()
   const client = requireSupabase()
   const { data, error } = await client.from('courses').select('*').order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
@@ -143,6 +168,7 @@ export async function fetchCourses(): Promise<Course[]> {
 }
 
 export async function fetchCourse(courseId: string): Promise<Course | null> {
+  if (publicPreview) return previewCourse(courseId)
   const client = requireSupabase()
   const { data, error } = await client.from('courses').select('*').eq('id', courseId).maybeSingle()
   if (error) throw new Error(error.message)
@@ -155,6 +181,7 @@ export async function createCourse(input: {
   description: string
   timezone: string
 }): Promise<string> {
+  blockPreview()
   const client = requireSupabase()
   const { data: userData, error: userError } = await client.auth.getUser()
   if (userError) throw new Error(userError.message)
@@ -181,6 +208,7 @@ export async function updateCourse(
   courseId: string,
   input: { name: string; courseCode: string; description: string; timezone: string; archived: boolean },
 ): Promise<void> {
+  blockPreview()
   const client = requireSupabase()
   const { error } = await client
     .from('courses')
@@ -199,6 +227,7 @@ export async function updateCourse(
 }
 
 export async function fetchCourseAssignments(courseId: string): Promise<Assignment[]> {
+  if (publicPreview) return previewCourseAssignments(courseId)
   const client = requireSupabase()
   const { data, error } = await client
     .from('assignments')
@@ -210,6 +239,7 @@ export async function fetchCourseAssignments(courseId: string): Promise<Assignme
 }
 
 export async function fetchAssignment(assignmentId: string): Promise<Assignment | null> {
+  if (publicPreview) return previewAssignment(assignmentId)
   const client = requireSupabase()
   const { data, error } = await client.from('assignments').select('*').eq('id', assignmentId).maybeSingle()
   if (error) throw new Error(error.message)
@@ -227,6 +257,7 @@ export async function saveAssignment(input: {
   allowResubmission: boolean
   status: AssignmentStatus
 }): Promise<string> {
+  blockPreview()
   const client = requireSupabase()
   const { data: userData, error: userError } = await client.auth.getUser()
   if (userError) throw new Error(userError.message)
@@ -261,6 +292,7 @@ export interface CourseMemberView {
 }
 
 export async function fetchCourseMembers(courseId: string): Promise<CourseMemberView[]> {
+  if (publicPreview) return previewMembers(courseId)
   const client = requireSupabase()
   const { data, error } = await client
     .from('course_members')
@@ -280,6 +312,7 @@ export async function fetchCourseMembers(courseId: string): Promise<CourseMember
 }
 
 export async function fetchPendingRequests(courseId: string): Promise<Array<EnrollmentRequest & { display_name: string; student_code: string | null }>> {
+  if (publicPreview) return previewRequests(courseId)
   const client = requireSupabase()
   const { data, error } = await client
     .from('enrollment_requests')
@@ -300,12 +333,14 @@ export async function fetchPendingRequests(courseId: string): Promise<Array<Enro
 }
 
 export async function requestEnrollment(courseCode: string): Promise<void> {
+  blockPreview()
   const client = requireSupabase()
   const { error } = await client.rpc('request_enrollment', { p_course_code: courseCode.trim() })
   if (error) throw new Error(error.message)
 }
 
 export async function decideEnrollment(requestId: string, approve: boolean): Promise<void> {
+  blockPreview()
   const client = requireSupabase()
   const { error } = await client.rpc('decide_enrollment', {
     p_request_id: requestId,
@@ -315,6 +350,7 @@ export async function decideEnrollment(requestId: string, approve: boolean): Pro
 }
 
 export async function enrollByStudentId(courseId: string, studentId: string): Promise<void> {
+  blockPreview()
   const client = requireSupabase()
   const { error } = await client.rpc('enroll_by_student_id', {
     p_course_id: courseId,
@@ -324,6 +360,7 @@ export async function enrollByStudentId(courseId: string, studentId: string): Pr
 }
 
 export async function addCourseTeacher(courseId: string, email: string): Promise<void> {
+  blockPreview()
   const client = requireSupabase()
   const { error } = await client.rpc('add_course_teacher', {
     p_course_id: courseId,
@@ -333,6 +370,7 @@ export async function addCourseTeacher(courseId: string, email: string): Promise
 }
 
 export async function fetchReviewRows(assignmentId: string): Promise<SubmissionView[]> {
+  if (publicPreview) return previewReviewRows(assignmentId)
   const client = requireSupabase()
   const { data, error } = await client
     .from('submissions')
@@ -353,6 +391,7 @@ export async function fetchReviewRows(assignmentId: string): Promise<SubmissionV
 }
 
 export async function reviewSubmission(submissionId: string, feedback: string): Promise<void> {
+  blockPreview()
   const client = requireSupabase()
   const { error } = await client.rpc('review_submission', {
     p_submission_id: submissionId,
@@ -362,6 +401,10 @@ export async function reviewSubmission(submissionId: string, feedback: string): 
 }
 
 export async function downloadOwnFile(storagePath: string, filename: string): Promise<void> {
+  if (publicPreview) {
+    downloadPreviewFile(filename)
+    return
+  }
   const client = requireSupabase()
   const { data, error } = await client.storage.from('submissions').download(storagePath)
   if (error || !data) throw new Error(error?.message ?? 'The file could not be downloaded.')
@@ -406,6 +449,10 @@ export function submissionsToCsv(rows: SubmissionView[], courseName: string, ass
 }
 
 export async function downloadSubmissionsZip(rows: SubmissionView[], courseName: string, assignmentTitle: string): Promise<void> {
+  if (publicPreview) {
+    downloadPreviewFile(`${assignmentTitle || courseName || 'submissions'}.txt`)
+    return
+  }
   const client = requireSupabase()
   const zip = new JSZip()
   const root = zip.folder('ForFire-Export')
@@ -426,6 +473,7 @@ export async function downloadSubmissionsZip(rows: SubmissionView[], courseName:
 }
 
 export async function fetchProfilesForAdmin(): Promise<Profile[]> {
+  if (publicPreview) return []
   const client = requireSupabase()
   const { data, error } = await client.from('profiles').select('*').order('created_at', { ascending: true })
   if (error) throw new Error(error.message)
@@ -433,6 +481,7 @@ export async function fetchProfilesForAdmin(): Promise<Profile[]> {
 }
 
 export async function promoteUser(userId: string, role: UserRole): Promise<void> {
+  blockPreview()
   const client = requireSupabase()
   const { error } = await client.rpc('promote_user', { p_user_id: userId, p_role: role })
   if (error) throw new Error(error.message)

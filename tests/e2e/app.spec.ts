@@ -4,23 +4,22 @@ test('shows the ForFire landing page from the repository base path', async ({ pa
   const response = await page.goto('/forfire/')
   expect(response?.ok()).toBeTruthy()
   await expect(page.getByRole('heading', { name: /Homework with a clear deadline/ })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Create a student account' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Student view' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Create a student account' })).toHaveCount(0)
 })
 
-test('sign-in form is labeled and has no role selector', async ({ page }) => {
+test('sign-in opens the sample class instead of an account form', async ({ page }) => {
   await page.goto('/forfire/#/sign-in')
-  await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
-  await expect(page.getByLabel('Email')).toBeVisible()
-  await expect(page.getByLabel('Password')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Your assignments' })).toBeVisible()
   await expect(page.getByLabel('Role')).toHaveCount(0)
 })
 
-test('keeps a nested route after refresh', async ({ page }) => {
+test('opens the student pages without an account', async ({ page }) => {
   await page.goto('/forfire/#/student/submissions')
-  await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'My submissions' })).toBeVisible()
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
-  await expect(page).toHaveURL(/#\/sign-in/)
+  await expect(page.getByRole('heading', { name: 'My submissions' })).toBeVisible()
+  await expect(page).toHaveURL(/#\/student\/submissions/)
 })
 
 test('unknown hash routes stay inside the app', async ({ page }) => {
@@ -37,9 +36,8 @@ test('mobile navigation opens', async ({ page }) => {
   await expect(page.locator('#site-nav')).toBeVisible()
 })
 
-test('student sign-up explains that the role is fixed', async ({ page }) => {
+test('sign-up opens the sample class instead of an account form', async ({ page }) => {
   await page.goto('/forfire/#/sign-up')
-  await expect(page.getByRole('heading', { name: 'Create a student account' })).toBeVisible()
-  await expect(page.getByText(/cannot choose a role/)).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Your assignments' })).toBeVisible()
   await expect(page.getByLabel('Role')).toHaveCount(0)
 })

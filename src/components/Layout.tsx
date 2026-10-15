@@ -1,7 +1,9 @@
 import { useState, type ReactNode } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../app/auth-context.ts'
+import { publicPreview } from '../lib/preview.ts'
 import { isStaffRole } from '../lib/permissions.ts'
+import { Notice } from './ui.tsx'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   `rounded-full px-3 py-2 text-sm font-semibold ${isActive ? 'bg-pine text-white' : 'text-ink hover:bg-white'}`
@@ -18,7 +20,12 @@ export function Layout({ children }: { children: ReactNode }) {
     navigate('/')
   }
 
-  const links = !session
+  const links = publicPreview
+    ? [
+        { to: '/student', label: 'Student' },
+        { to: '/teacher', label: 'Teacher' },
+      ]
+    : !session
     ? [{ to: '/sign-in', label: 'Sign in' }]
     : staff
       ? [
@@ -64,7 +71,7 @@ export function Layout({ children }: { children: ReactNode }) {
                   </NavLink>
                 </li>
               ))}
-              {session ? (
+              {session && !publicPreview ? (
                 <li>
                   <button type="button" className="btn btn-quiet w-full md:w-auto" onClick={() => void onSignOut()}>
                     Sign out
@@ -76,10 +83,19 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main id="main" className="mx-auto w-full max-w-6xl px-4 py-8">
+        {publicPreview ? (
+          <div className="mb-6">
+            <Notice tone="info">
+              This is a public website. You can open the student and teacher pages without an account. Nothing you type is saved.
+            </Notice>
+          </div>
+        ) : null}
         {children}
       </main>
       <footer className="mx-auto max-w-6xl px-4 pb-8 text-sm text-muted">
-        Submitted files stay in private storage. They are not saved in the website source repository.
+        {publicPreview
+          ? 'Public preview. Accounts and file storage are turned off on this copy.'
+          : 'Submitted files stay in private storage. They are not saved in the website source repository.'}
       </footer>
     </div>
   )

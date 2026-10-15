@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { publicPreview } from '../../lib/preview.ts'
 import { supabaseConfigMessage } from '../../lib/supabase.ts'
 import { Notice, TextLink } from '../../components/ui.tsx'
 
@@ -11,18 +12,32 @@ export function LandingPage() {
           Homework with a clear deadline and a private hand-in.
         </h1>
         <p className="mt-5 max-w-xl text-lg text-muted">
-          Students see the work for courses they are enrolled in, upload a file, and read feedback meant only for them.
-          Teachers publish assignments and review those submissions.
+          {publicPreview
+            ? 'Open the sample class in your browser. There is no sign-up and no database on this public copy.'
+            : 'Students see the work for courses they are enrolled in, upload a file, and read feedback meant only for them. Teachers publish assignments and review those submissions.'}
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link className="btn btn-primary" to="/sign-in">
-            Sign in
-          </Link>
-          <Link className="btn btn-quiet" to="/sign-up">
-            Create a student account
-          </Link>
+          {publicPreview ? (
+            <>
+              <Link className="btn btn-primary" to="/student">
+                Student view
+              </Link>
+              <Link className="btn btn-quiet" to="/teacher">
+                Teacher view
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link className="btn btn-primary" to="/sign-in">
+                Sign in
+              </Link>
+              <Link className="btn btn-quiet" to="/sign-up">
+                Create a student account
+              </Link>
+            </>
+          )}
         </div>
-        {supabaseConfigMessage ? (
+        {!publicPreview && supabaseConfigMessage ? (
           <div className="mt-6 max-w-xl">
             <Notice tone="info">{supabaseConfigMessage}</Notice>
           </div>
@@ -45,7 +60,13 @@ export function LandingPage() {
           </li>
         </ol>
         <p className="mt-6 text-sm">
-          Already registered? <TextLink to="/sign-in">Sign in</TextLink> or <TextLink to="/reset-password">reset your password</TextLink>.
+          {publicPreview ? (
+            'The sample course is CS101. Student and teacher pages use the same made-up class.'
+          ) : (
+            <>
+              Already registered? <TextLink to="/sign-in">Sign in</TextLink> or <TextLink to="/reset-password">reset your password</TextLink>.
+            </>
+          )}
         </p>
       </section>
     </div>

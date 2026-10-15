@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
+import { useLocation } from 'react-router-dom'
 import { fetchMyProfile } from '../lib/api.ts'
+import { previewStudent, previewTeacher, publicPreview } from '../lib/preview.ts'
 import { initialAuthType, supabase, supabaseConfigMessage } from '../lib/supabase.ts'
 import type { Profile } from '../types/database.ts'
 import { AuthContext } from './auth-context.ts'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const location = useLocation()
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(Boolean(supabase))
@@ -57,18 +60,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null)
   }, [])
 
+  const previewProfile = location.pathname.startsWith('/teacher') ? previewTeacher : previewStudent
   const value = useMemo(
-    () => ({
-      configured: supabaseConfigMessage === null,
-      session,
-      profile,
-      loading,
-      recovery,
-      clearRecovery: () => setRecovery(false),
-      refreshProfile,
-      signOut,
-    }),
-    [session, profile, loading, recovery, refreshProfile, signOut],
+    () =>
+      publicPreview
+        ? {
+            configured: false,
+            session: { user: { id: previewProfile.id } } as Session,
+            profile: previewProfile,
+            loading: false,
+            recovery: false,
+            clearRecovery: () => undefined,
+            refreshProfile: async () => undefined,
+            signOut: async () => undefined,
+          }
+        : {
+            configured: supabaseConfigMessage === null,
+            session,
+            profile,
+            loading,
+            recovery,
+            clearRecovery: () => setRecovery(false),
+            refreshProfile,
+            signOut,
+          },
+    [previewProfile, session, profile, loading, recovery, refreshProfile, signOut],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

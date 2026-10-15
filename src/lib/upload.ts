@@ -1,3 +1,4 @@
+import { previewBlocked, publicPreview } from './preview.ts'
 import { canonicalMime, validateChosenFile } from './validation.ts'
 import { requireSupabase, supabasePublishableKey, supabaseUrl } from './supabase.ts'
 
@@ -19,6 +20,7 @@ export async function submitAssignmentFile(options: {
     max_file_size_bytes: options.maxFileSizeBytes,
   })
   if (problem) throw new Error(problem)
+  if (publicPreview) throw new Error(previewBlocked)
 
   const client = requireSupabase()
   const { data: sessionData, error: sessionError } = await client.auth.getSession()
@@ -63,6 +65,7 @@ export async function submitAssignmentFile(options: {
 }
 
 export async function cancelPendingSubmission(submissionId: string): Promise<void> {
+  if (publicPreview) throw new Error(previewBlocked)
   const client = requireSupabase()
   const { error } = await client.rpc('abort_submission', { p_submission_id: submissionId })
   if (error) throw new Error(error.message)
