@@ -1,226 +1,262 @@
-const team = [
-  'Sara CHARRADA (ENISo)',
-  'Mehrez ABDELLAOUI (ENISo)',
-  'Ali DOUIK (ENISo)',
-]
+import type { ReactNode } from 'react'
+import { RiskMap } from './RiskMap.tsx'
 
 const files = [
-  { name: 'train.csv', detail: '816 195 lignes, avec fire_risk. Nettoyage obligatoire.' },
-  { name: 'validation.csv', detail: '99 899 lignes, avec fire_risk. Nettoyage obligatoire.' },
-  { name: 'test.csv', detail: '99 899 lignes, sans fire_risk. Fichier propre.' },
+  ['train.csv', '816 195', 'oui', 'Contient des imperfections'],
+  ['validation.csv', '99 899', 'oui', 'Contient des imperfections'],
+  ['test.csv', '99 899', 'non', 'Propre'],
 ]
 
-const columnGroups: Array<{ title: string; rows: Array<[string, string]> }> = [
+const groups = [
   {
-    title: 'Identifiant',
-    rows: [['obs_id', 'Identifiant unique. Format YYYYMMDD_RRRR_CCCC, stable dans tout le jeu.']],
-  },
-  {
-    title: 'Localisation',
-    rows: [
-      ['date', 'Date Sentinel-2 (YYYY-MM-DD). 15 dates du 2020-05-05 au 2020-08-28.'],
-      ['row', 'Indice ligne du pixel, de 0 à 593.'],
-      ['col', 'Indice colonne du pixel, de 0 à 1291.'],
-      ['latitude', 'Latitude WGS84, en degrés nord.'],
-      ['longitude', 'Longitude WGS84, en degrés est.'],
+    title: 'Identification et position',
+    items: [
+      'obs_id : AAAAMMJJ_LLLL_CCCC, unique',
+      'date, row (0–593), col (0–1291)',
+      'latitude, longitude (WGS84)',
     ],
   },
   {
-    title: 'Données spectrales — Sentinel-2 L2A, 10 m',
-    rows: [
-      ['NDVI', 'Indice de végétation, dans [−1, +1].'],
-      ['NDMI', 'Indice d’humidité du combustible, dans [−1, +1].'],
-      ['NBR', 'Indice de brûlure, dans [−1, +1].'],
+    title: 'Spectral (Sentinel-2 L2A, 10 m)',
+    items: ['NDVI : végétation', 'NDMI : humidité du combustible', 'NBR : brûlure', 'Tous dans [−1, +1]'],
+  },
+  {
+    title: 'Topographie (SRTM)',
+    items: ['altitude : 21 à 49 m', 'pente : 0 à 19,84°', 'orientation : 0 à 360°'],
+  },
+  {
+    title: 'Météo (ERA5, 10 h UTC)',
+    items: [
+      't2m_C : 20,8 à 30,8 °C',
+      'RH : 47,5 à 85,6 %',
+      'wind_speed : 0,83 à 9,56 m/s',
+      'wind_dir : 0 à 360°',
+      'tp = 0 partout (saison sèche)',
     ],
-  },
-  {
-    title: 'Données topographiques — SRTM, statiques',
-    rows: [
-      ['altitude', 'De 21 à 49 m.'],
-      ['pente', 'De 0 à 19,84 °.'],
-      ['orientation', 'De 0 à 360 °.'],
-    ],
-  },
-  {
-    title: 'Données météorologiques — ERA5, 10 h UTC',
-    rows: [
-      ['t2m_C', 'Température à 2 m, de 20,8 à 30,8 °C.'],
-      ['RH', 'Humidité relative, de 47,5 à 85,6 %.'],
-      ['wind_speed', 'Vitesse du vent, de 0,83 à 9,56 m/s.'],
-      ['wind_dir', 'Direction du vent, de 0 à 360 °.'],
-      ['tp', 'Précipitation. Vaut 0 partout : saison sèche.'],
-    ],
-  },
-  {
-    title: 'Colonne parasite — à ignorer',
-    rows: [['id_observation', 'Identifiant interne. Aucune valeur pour le modèle.']],
-  },
-  {
-    title: 'Cible',
-    rows: [['fire_risk', 'Fire Ignition Index, dans [0, 1].']],
   },
 ]
 
-const flaws = [
+const traps = [
   {
-    title: 'Valeurs manquantes (NaN)',
-    text: 'Colonnes concernées : NDVI, NDMI, t2m_C, RH, wind_speed, slope.',
+    title: 'Valeurs manquantes',
+    text: 'NDVI, NDMI, t2m_C, RH, wind_speed, slope. Choisissez et justifiez une stratégie d’imputation.',
   },
-  { title: 'Doublons', text: 'Des lignes sont dupliquées dans train.csv.' },
+  { title: 'Doublons', text: 'Lignes dupliquées dans train.csv. Appuyez-vous sur obs_id.' },
   {
-    title: 'Valeurs hors plage physique',
-    text: 'Colonnes concernées : NDVI, t2m_C, wind_speed, altitude.',
+    title: 'Outliers',
+    text: 'Valeurs hors plage physique dans NDVI, t2m_C, wind_speed, altitude. Comparez avec les plages ci-dessus.',
   },
-  { title: 'Types incorrects', text: 'Quelques colonnes contiennent des erreurs de type.' },
-  { title: 'Colonne parasite', text: 'id_observation est à ignorer.' },
+  {
+    title: 'Types erronés',
+    text: 'Certaines colonnes ont un type incorrect (texte à la place de nombres, par exemple). Convertissez-les.',
+  },
 ]
+
+const steps = [
+  ['Explorer', 'Chargez les trois fichiers, vérifiez les types, les distributions, les plages, les dates et la répartition spatiale.'],
+  ['Nettoyer train et validation', 'Supprimez la colonne parasite, convertissez les types, retirez les doublons, traitez les outliers hors plage physique, puis imputez les NaN. Documentez chaque choix.'],
+  ['Construire des variables', 'Pensez au jour de l’année, à des interactions température/humidité, à la composante du vent selon la pente, ou à des statistiques sur les pixels voisins.'],
+  ['Entraîner un modèle de régression', 'Partez d’une référence simple, puis essayez des modèles plus riches (arbres boostés, forêts aléatoires, réseaux).'],
+  ['Valider honnêtement', 'Mesurez R², RMSE et MAE sur validation.csv. Attention aux fuites : un même pixel apparaît à plusieurs dates.'],
+  ['Prédire sur test.csv', 'Appliquez exactement le même prétraitement. Test est propre, mais les colonnes doivent correspondre. Bornez les prédictions dans [0, 1].'],
+  ['Soumettre', 'Générez le fichier de soumission au format ci-dessous.'],
+]
+
+const sample = `obs_id,fire_risk
+20200818_0387_0982,0.6234
+20200823_0100_0500,0.7891
+20200828_0250_0750,0.4523`
+
+const python = `test = pd.read_csv("test.csv")
+pred = model.predict(X_test).clip(0, 1)
+pd.DataFrame({"obs_id": test.obs_id,
+  "fire_risk": pred}).to_csv(
+  "submission_MonEquipe.csv", index=False)`
+
+function scrollTo(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function Reveal({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <div className={`reveal ${className}`}>{children}</div>
+}
 
 export function LandingPage() {
   return (
-    <div className="space-y-8">
-      <section className="panel overflow-hidden">
-        <div className="bg-pine px-6 py-8 text-white sm:px-10 sm:py-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#f3c7b4]">ForFire AI Challenge</p>
-          <h1 className="mt-3 max-w-3xl font-serif text-4xl leading-[1.05] sm:text-6xl">
-            Prédiction du risque d’incendie à partir des données satellites
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg text-[#e7efe9]">
-            Estimer le Fire Ignition Index, <span className="font-semibold text-white">fire_risk</span>, un indice
-            normalisé de risque d’incendie dans [0, 1].
-          </p>
-        </div>
-        <div className="grid gap-6 px-6 py-6 sm:grid-cols-[1.2fr_0.8fr] sm:px-10">
-          <div>
-            <h2 className="font-serif text-2xl">Équipe projet</h2>
-            <ul className="mt-3 space-y-1 text-sm">
-              {team.map((person) => (
-                <li key={person}>{person}</li>
-              ))}
-            </ul>
-          </div>
-          <p className="text-sm text-muted sm:text-right">
-            <span className="block font-semibold uppercase tracking-[0.14em] text-ember">Date</span>
-            <span className="mt-1 block font-serif text-3xl text-ink">25 septembre 2026</span>
-          </p>
-        </div>
-      </section>
-
-      <section id="objectif" className="panel scroll-mt-24 p-6 sm:p-8">
-        <h2 className="font-serif text-3xl">Objectif</h2>
-        <p className="mt-3 max-w-3xl text-muted">
-          Problème de régression supervisée. Le modèle prédit <strong className="text-ink">fire_risk</strong> pour
-          chaque observation.
+    <div className="challenge">
+      <header className="hero-fire">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#f3c7b4]">ForFire-AI Challenge</p>
+        <h1 className="hero-title">
+          Lire le feu avant qu’il <span>démarre</span>
+        </h1>
+        <p className="mt-5 max-w-2xl text-lg text-[#efe7dc] sm:text-xl">
+          Un pixel de 10 m, un jour d’été 2020, un peu de météo et de relief : saurez-vous prédire le Fire Ignition
+          Index à partir d’images Sentinel-2 ?
         </p>
-        <dl className="mt-6 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl bg-pine-soft px-4 py-4">
-            <dt className="text-sm font-semibold uppercase tracking-[0.12em] text-pine">Métrique principale</dt>
-            <dd className="mt-1 font-serif text-3xl">R²</dd>
-            <dd className="text-sm text-muted">À maximiser</dd>
-          </div>
-          <div className="rounded-2xl bg-[#fff4f0] px-4 py-4">
-            <dt className="text-sm font-semibold uppercase tracking-[0.12em] text-ember">RMSE</dt>
-            <dd className="mt-1 font-serif text-3xl">À minimiser</dd>
-            <dd className="text-sm text-muted">Métrique secondaire</dd>
-          </div>
-          <div className="rounded-2xl bg-[#fff4f0] px-4 py-4">
-            <dt className="text-sm font-semibold uppercase tracking-[0.12em] text-ember">MAE</dt>
-            <dd className="mt-1 font-serif text-3xl">À minimiser</dd>
-            <dd className="text-sm text-muted">Métrique secondaire</dd>
-          </div>
-        </dl>
-      </section>
+        <div className="mt-7 flex flex-wrap gap-3">
+          <button type="button" className="btn btn-primary" onClick={() => scrollTo('faire')}>
+            Ce que vous devez faire
+          </button>
+          <button type="button" className="btn btn-quiet" onClick={() => scrollTo('donnees')}>
+            Voir les données
+          </button>
+        </div>
+        <div className="embers" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="relative z-10 mt-8">
+          <RiskMap />
+        </div>
+      </header>
 
-      <section id="fichiers" className="grid scroll-mt-24 gap-4 lg:grid-cols-2">
-        <article className="panel p-6 sm:p-8">
-          <h2 className="font-serif text-3xl">Fichiers fournis</h2>
-          <ul className="mt-4 space-y-4">
-            {files.map((file) => (
-              <li key={file.name}>
-                <p className="font-semibold">{file.name}</p>
-                <p className="text-sm text-muted">{file.detail}</p>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-5 text-sm">
-            <strong>train.csv</strong> et <strong>validation.csv</strong> contiennent volontairement des imperfections.
-            Le nettoyage des données est obligatoire. <strong>test.csv</strong> est propre.
+      <Reveal>
+        <section id="objectif" className="challenge-block scroll-mt-24">
+          <h2>L’objectif</h2>
+          <p className="lead">
+            Prédire <code>fire_risk</code>, un indice normalisé de risque d’incendie compris entre 0 et 1, pour chaque
+            pixel du fichier test. C’est un problème de régression supervisée.
           </p>
-        </article>
-        <article className="panel p-6 sm:p-8">
-          <h2 className="font-serif text-3xl">Identifiant unique</h2>
-          <p className="mt-3 text-sm leading-6">
-            Chaque observation a un <strong>obs_id</strong> au format <code>YYYYMMDD_RRRR_CCCC</code>.
-          </p>
-          <ul className="mt-3 space-y-1 text-sm text-muted">
-            <li>YYYYMMDD — date d’acquisition</li>
-            <li>RRRR — indice de ligne (row)</li>
-            <li>CCCC — indice de colonne (col)</li>
-          </ul>
-          <p className="mt-4 rounded-2xl bg-[#f7f3ea] px-4 py-3 font-mono text-sm">
-            20200729_0387_0982
-            <span className="mt-1 block font-sans text-muted">Pixel (387, 982) le 29 juillet 2020</span>
-          </p>
-          <p className="mt-4 text-sm">
-            Le fichier de soumission contient <strong>obs_id</strong> et <strong>fire_risk</strong> dans le même ordre
-            que test.csv.
-          </p>
-        </article>
-      </section>
+          <div className="metrics">
+            <div>
+              <b>R²</b>
+              Métrique principale, à maximiser
+            </div>
+            <div>
+              <b>RMSE</b>
+              À minimiser
+            </div>
+            <div>
+              <b>MAE</b>
+              À minimiser
+            </div>
+          </div>
+        </section>
+      </Reveal>
 
-      <section id="colonnes" className="scroll-mt-24 space-y-4">
-        <h2 className="font-serif text-3xl">Description des colonnes</h2>
-        {columnGroups.map((group) => (
-          <article key={group.title} className="panel overflow-hidden">
-            <h3 className="border-b border-line px-5 py-3 font-semibold">{group.title}</h3>
-            <table className="w-full text-left text-sm">
+      <Reveal>
+        <section id="donnees" className="challenge-block scroll-mt-24">
+          <h2>Les données</h2>
+          <p className="lead">Une zone de 594 × 1292 pixels, observée à 15 dates entre le 5 mai et le 28 août 2020.</p>
+          <div className="overflow-x-auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fichier</th>
+                  <th>Lignes</th>
+                  <th>Cible</th>
+                  <th>Remarque</th>
+                </tr>
+              </thead>
               <tbody>
-                {group.rows.map(([name, detail]) => (
-                  <tr key={name} className="border-t border-line/70 first:border-t-0">
-                    <th className="w-36 px-5 py-3 align-top font-mono font-semibold sm:w-44">{name}</th>
-                    <td className="px-5 py-3 text-muted">{detail}</td>
+                {files.map(([name, rows, target, note]) => (
+                  <tr key={name}>
+                    <td>
+                      <code>{name}</code>
+                    </td>
+                    <td>{rows}</td>
+                    <td>{target}</td>
+                    <td>{note}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </article>
-        ))}
-      </section>
+          </div>
+          <div className="card-grid">
+            {groups.map((group) => (
+              <article key={group.title} className="info-card">
+                <h3>{group.title}</h3>
+                <ul>
+                  {group.items.map((item) => {
+                    const marker = ' : '
+                    const at = item.indexOf(marker)
+                    if (at === -1) return <li key={item}>{item}</li>
+                    return (
+                      <li key={item}>
+                        <code>{item.slice(0, at)}</code>
+                        {item.slice(at)}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </article>
+            ))}
+          </div>
+          <p className="warn">
+            La colonne <code>id_observation</code> est parasite et vide : ignorez-la.
+          </p>
+        </section>
+      </Reveal>
 
-      <section id="imperfections" className="panel p-6 sm:p-8">
-        <h2 className="font-serif text-3xl">Imperfections volontaires</h2>
-        <p className="mt-3 max-w-3xl text-sm text-muted">
-          Présentes dans train.csv et validation.csv. Le challenge évalue la capacité à les identifier, à nettoyer les
-          données, puis à construire un modèle robuste.
-        </p>
-        <ol className="mt-5 grid gap-3 sm:grid-cols-2">
-          {flaws.map((flaw, index) => (
-            <li key={flaw.title} className="rounded-2xl border border-line bg-[#fffdf8] px-4 py-4">
-              <p className="font-semibold">
-                {index + 1}. {flaw.title}
-              </p>
-              <p className="mt-1 text-sm text-muted">{flaw.text}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
+      <Reveal>
+        <section id="nettoyage" className="challenge-block scroll-mt-24">
+          <h2>Le piège : des données volontairement sales</h2>
+          <p className="lead">
+            Train et validation contiennent des imperfections intentionnelles. Le nettoyage est obligatoire, et il fait
+            partie de l’évaluation.
+          </p>
+          <div className="card-grid">
+            {traps.map((trap) => (
+              <article key={trap.title} className="info-card hot">
+                <h3>{trap.title}</h3>
+                <p>{trap.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      </Reveal>
 
-      <section id="soumission" className="panel scroll-mt-24 p-6 sm:p-8">
-        <h2 className="font-serif text-3xl">Format de soumission</h2>
-        <p className="mt-3 text-sm">
-          Fichier nommé <strong>submission_[NomEquipe].csv</strong>
-        </p>
-        <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-muted">
-          <li>Colonne obs_id, copiée depuis test.csv</li>
-          <li>Colonne fire_risk, prédictions du modèle</li>
-          <li>Même nombre de lignes que test.csv</li>
-          <li>Même ordre que test.csv</li>
-          <li>Valeurs fire_risk dans [0, 1]</li>
-        </ul>
-        <pre className="mt-5 overflow-x-auto rounded-2xl bg-ink px-4 py-4 text-sm text-[#f7f3ea]">{`obs_id,fire_risk
-20200818_0387_0982,0.6234
-20200823_0100_0500,0.7891
-20200828_0250_0750,0.4523`}</pre>
-      </section>
+      <Reveal>
+        <section id="faire" className="challenge-block scroll-mt-24">
+          <h2>Ce que vous devez faire</h2>
+          <p className="lead">Un parcours en sept étapes, de l’exploration à la soumission.</p>
+          <ol className="steps">
+            {steps.map(([title, text]) => (
+              <li key={title}>
+                <div>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </Reveal>
+
+      <Reveal>
+        <section id="soumission" className="challenge-block scroll-mt-24">
+          <h2>Format de soumission</h2>
+          <p className="lead">
+            Fichier nommé <code>submission_[NomEquipe].csv</code>, avec le même nombre de lignes et le même ordre que
+            test.csv.
+          </p>
+          <pre>{sample}</pre>
+          <div className="card-grid">
+            <article className="info-card">
+              <h3>Exigences</h3>
+              <ul>
+                <li>
+                  Colonnes <code>obs_id</code> et <code>fire_risk</code>
+                </li>
+                <li>99 899 lignes, ordre de test.csv</li>
+                <li>Valeurs de fire_risk dans [0, 1]</li>
+              </ul>
+            </article>
+            <article className="info-card">
+              <h3>Squelette Python</h3>
+              <pre>{python}</pre>
+            </article>
+          </div>
+          <p className="team-line">
+            <strong>ForFire-AI Challenge</strong> — 25 septembre 2026
+            <br />
+            Équipe projet : Sara Charrada, Mehrez Abdellaoui, Ali Douik (ENISo)
+          </p>
+        </section>
+      </Reveal>
     </div>
   )
 }

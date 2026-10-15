@@ -15,8 +15,9 @@ export function Layout({ children }: { children: ReactNode }) {
   const staff = isStaffRole(profile?.role)
   const challengeLinks = [
     { id: 'objectif', label: 'Objectif' },
-    { id: 'fichiers', label: 'Fichiers' },
-    { id: 'colonnes', label: 'Colonnes' },
+    { id: 'donnees', label: 'Données' },
+    { id: 'nettoyage', label: 'Nettoyage' },
+    { id: 'faire', label: 'Parcours' },
     { id: 'soumission', label: 'Soumission' },
   ]
 
@@ -107,7 +108,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </main>
       <footer className="mx-auto max-w-6xl px-4 pb-8 text-sm text-muted">
         {publicPreview
-          ? 'ForFire AI Challenge · ENISo · 25 septembre 2026'
+          ? 'ForFire-AI Challenge — Sara Charrada, Mehrez Abdellaoui, Ali Douik (ENISo) · 25 septembre 2026'
           : 'Submitted files stay in private storage. They are not saved in the website source repository.'}
       </footer>
     </div>

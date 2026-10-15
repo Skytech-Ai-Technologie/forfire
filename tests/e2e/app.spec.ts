@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test'
 test('shows the ForFire landing page from the repository base path', async ({ page }) => {
   const response = await page.goto('/forfire/')
   expect(response?.ok()).toBeTruthy()
-  await expect(page.getByRole('heading', { name: /Prédiction du risque/ })).toBeVisible()
-  await expect(page.getByText('Sara CHARRADA (ENISo)')).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Lire le feu avant/ })).toBeVisible()
+  await expect(page.getByText('Sara Charrada, Mehrez Abdellaoui, Ali Douik (ENISo)').first()).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Format de soumission' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Create a student account' })).toHaveCount(0)
 })

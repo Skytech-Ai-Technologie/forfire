@@ -144,3 +144,287 @@ body {
   background: #f8e4dc;
   color: var(--color-ember-dark);
 }
+
+.challenge h2 {
+  font-family: "Bricolage Grotesque", "Figtree", sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.7rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.hero-fire {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.6rem;
+  background:
+    radial-gradient(circle at 80% 0%, rgb(200 66 27 / 45%), transparent 36%),
+    linear-gradient(160deg, #1b2623 0%, #2a1812 70%, #4a2418 100%);
+  padding: 1.7rem 1.1rem 1.2rem;
+  color: white;
+}
+
+.hero-title {
+  max-width: 100%;
+  font-family: "Bricolage Grotesque", "Figtree", sans-serif;
+  font-size: clamp(2.15rem, 7vw, 4.6rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 0.96;
+  overflow-wrap: break-word;
+}
+
+.hero-title span {
+  color: #ff7a45;
+  animation: flicker 2.6s ease-in-out infinite;
+}
+
+.embers {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+}
+
+.embers span {
+  position: absolute;
+  bottom: 12%;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #ffb087;
+  opacity: 0.8;
+  animation: rise 7s linear infinite;
+}
+
+.embers span:nth-child(1) { left: 12%; animation-delay: 0s; }
+.embers span:nth-child(2) { left: 28%; animation-delay: 1.4s; width: 4px; height: 4px; }
+.embers span:nth-child(3) { left: 63%; animation-delay: 2.2s; }
+.embers span:nth-child(4) { left: 78%; animation-delay: 0.8s; width: 5px; height: 5px; }
+.embers span:nth-child(5) { left: 46%; animation-delay: 3s; }
+
+.challenge-block {
+  margin-top: 2.5rem;
+  border-top: 1px solid var(--color-line);
+  padding-top: 2.2rem;
+}
+
+.lead {
+  max-width: 65ch;
+  margin: 0.8rem 0 1.4rem;
+  color: var(--color-muted);
+  font-size: 1.05rem;
+}
+
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.metrics div {
+  flex: 1 1 11rem;
+  border: 1px solid var(--color-line);
+  border-radius: 1rem;
+  background: white;
+  padding: 1rem;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.metrics div:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgb(200 66 27 / 12%);
+}
+
+.metrics b {
+  display: block;
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 1.8rem;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.9rem;
+  margin-top: 1.2rem;
+}
+
+.info-card {
+  border-left: 4px solid var(--color-pine);
+  border-radius: 0.4rem 1rem 1rem 0.4rem;
+  background: white;
+  padding: 1.1rem 1.15rem;
+  transition: transform 180ms ease;
+}
+
+.info-card:hover {
+  transform: translateY(-3px);
+}
+
+.info-card.hot {
+  border-left-color: var(--color-ember);
+}
+
+.info-card h3 {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 1.15rem;
+  margin-bottom: 0.4rem;
+}
+
+.info-card p,
+.info-card ul {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.95rem;
+}
+
+.info-card ul {
+  padding-left: 1.1rem;
+}
+
+.info-card li + li {
+  margin-top: 0.25rem;
+}
+
+.challenge table {
+  width: 100%;
+  min-width: 32rem;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.challenge th,
+.challenge td {
+  border-bottom: 1px solid var(--color-line);
+  padding: 0.7rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.challenge th {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.challenge code {
+  border-radius: 0.3rem;
+  background: #f4f0e6;
+  padding: 0.05rem 0.3rem;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.86em;
+}
+
+.challenge pre {
+  overflow-x: auto;
+  border-radius: 0.8rem;
+  background: #1b2623;
+  color: #efebe4;
+  padding: 1rem;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.86rem;
+}
+
+.warn {
+  margin-top: 1.2rem;
+  border-left: 4px solid var(--color-ember);
+  background: #fff4ee;
+  padding: 0.9rem 1rem;
+}
+
+.steps {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: 3rem 1fr;
+  gap: 0.8rem;
+  border-bottom: 1px solid var(--color-line);
+  padding: 1rem 0;
+  counter-increment: step;
+}
+
+.steps li::before {
+  content: counter(step);
+  color: var(--color-ember);
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.steps h3 {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 1.2rem;
+}
+
+.steps p {
+  margin: 0.2rem 0 0;
+  color: var(--color-muted);
+}
+
+.team-line {
+  margin-top: 1.4rem;
+  color: var(--color-muted);
+}
+
+.map-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 0.9rem;
+  background: #24312c;
+}
+
+.map-scan {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -20%;
+  width: 18%;
+  background: linear-gradient(90deg, transparent, rgb(255 244 230 / 28%), transparent);
+  animation: scan 5.5s ease-in-out infinite;
+}
+
+.reveal {
+  animation: rise-in 700ms ease both;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; text-shadow: 0 0 0 transparent; }
+  50% { opacity: 0.78; text-shadow: 0 0 18px rgb(255 122 69 / 70%); }
+}
+
+@keyframes rise {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  15% { opacity: 0.85; }
+  100% { transform: translateY(-220px) scale(0.4); opacity: 0; }
+}
+
+@keyframes scan {
+  0% { left: -20%; }
+  100% { left: 110%; }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-title span,
+  .embers span,
+  .map-scan,
+  .reveal,
+  .metrics div,
+  .info-card {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
