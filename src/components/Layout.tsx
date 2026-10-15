@@ -5,7 +5,7 @@ import { publicPreview } from '../lib/preview.ts'
 import { isStaffRole } from '../lib/permissions.ts'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-full px-3 py-2 text-sm font-semibold ${isActive ? 'bg-pine text-white' : 'text-ink hover:bg-white'}`
+  `rounded-full px-3 py-2 text-sm font-semibold ${isActive ? 'bg-pine text-white' : 'text-ink hover:bg-neutral-100'}`
 
 export function Layout({ children }: { children: ReactNode }) {
   const { session, profile, signOut } = useAuth()
@@ -53,12 +53,12 @@ export function Layout({ children }: { children: ReactNode }) {
         ]
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_#fffaf2,_#f3eee4_42%,_#efe6d6)] text-ink">
+    <div className="min-h-screen bg-white text-ink">
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <header className="border-b border-line/80 bg-paper/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
+      <header className="border-b border-line bg-white">
+        <div className="flex w-full items-center justify-between gap-4 px-4 py-4 md:px-8">
           <Link to="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
             <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-10 w-10" />
             <span>
@@ -68,19 +68,19 @@ export function Layout({ children }: { children: ReactNode }) {
           </Link>
           <button
             type="button"
-            className="btn btn-quiet md:hidden"
+            className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold md:hidden"
             aria-expanded={open}
             aria-controls="site-nav"
             onClick={() => setOpen((value) => !value)}
           >
             Menu
           </button>
-          <nav id="site-nav" className={`${open ? 'block' : 'hidden'} absolute left-0 right-0 top-[4.6rem] z-20 border-b border-line bg-paper px-4 py-3 md:static md:block md:border-0 md:bg-transparent md:p-0`}>
+          <nav id="site-nav" className={`${open ? 'block' : 'hidden'} absolute left-0 right-0 top-[4.6rem] z-20 border-b border-line bg-white px-4 py-3 md:static md:block md:border-0 md:bg-transparent md:p-0`}>
             <ul className="flex flex-col gap-2 md:flex-row md:items-center">
               {publicPreview
                 ? challengeLinks.map((link) => (
                     <li key={link.id}>
-                      <button type="button" className="rounded-full px-3 py-2 text-sm font-semibold text-ink hover:bg-white" onClick={() => openSection(link.id)}>
+                      <button type="button" className="rounded-full px-3 py-2 text-sm font-semibold text-ink hover:bg-neutral-100" onClick={() => openSection(link.id)}>
                         {link.label}
                       </button>
                     </li>
@@ -103,10 +103,10 @@ export function Layout({ children }: { children: ReactNode }) {
           </nav>
         </div>
       </header>
-      <main id="main" className="mx-auto w-full max-w-6xl px-4 py-8">
+      <main id="main" className="w-full">
         {children}
       </main>
-      <footer className="mx-auto max-w-6xl px-4 pb-8 text-sm text-muted">
+      <footer className="w-full px-4 py-8 text-sm text-muted md:px-8">
         {publicPreview
           ? 'ForFire-AI Challenge — Sara Charrada, Mehrez Abdellaoui, Ali Douik (ENISo) · 25 septembre 2026'
           : 'Submitted files stay in private storage. They are not saved in the website source repository.'}

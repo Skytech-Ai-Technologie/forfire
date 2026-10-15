@@ -65,7 +65,7 @@ export function RiskMap() {
           const flicker = reduced ? 0 : Math.sin(time / 280 + row * 0.7 + col) * 0.03 * base
           const value = Math.min(1, Math.max(0, base + breathe + flicker))
           context.fillStyle = color(value)
-          context.fillRect(col * cellWidth, row * cellHeight, cellWidth - 1, cellHeight - 1)
+          context.fillRect(col * cellWidth, row * cellHeight, cellWidth + 0.5, cellHeight + 0.5)
         }
       }
       if (!reduced) frame = window.requestAnimationFrame(paint)
