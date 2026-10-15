@@ -1,0 +1,3 @@
+# Local Supabase CLI metadata. Hosted setup does not need `supabase start`.
+# The SQL migration is the schema source of truth.
+project_id = "forfire"

@@ -1,0 +1,3 @@
+-- ForFire does not seed accounts, courses, or student files.
+-- Sign-up creates a student profile automatically.
+-- Promote the first admin with docs/provision-teacher.sql in the SQL editor.
